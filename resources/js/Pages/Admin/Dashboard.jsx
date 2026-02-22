@@ -108,7 +108,7 @@ export default function AdminDashboard({
         },
         {
             title: "Average Rating",
-            value: ipcrfStats?.average_rating ? ipcrfStats.average_rating.toFixed(2) : '0.00',
+            value: ipcrfStats?.average_rating ? Number(ipcrfStats.average_rating).toFixed(2) : '0.00',
             icon: Star,
             color: "bg-yellow-500",
             trend: "+0.3",
@@ -515,7 +515,7 @@ export default function AdminDashboard({
                                                 <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
                                                     <span className="text-sm font-medium text-gray-700">Avg Rating</span>
                                                     <span className="text-lg font-bold text-green-600">
-                                                        {ipcrfStats?.average_rating ? ipcrfStats.average_rating.toFixed(2) : '0.00'}
+                                                        {ipcrfStats?.average_rating ? Number(ipcrfStats.average_rating).toFixed(2) : '0.00'}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">

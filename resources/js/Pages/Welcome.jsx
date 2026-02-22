@@ -1,5 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { 
     FileText, 
     Users, 
@@ -15,92 +15,171 @@ import {
     Zap,
     Target,
     Eye,
-    X
+    X,
+    ChevronDown,
+    Sparkles
 } from 'lucide-react';
 
 export default function Welcome({ auth }) {
     const [isLearnMoreOpen, setIsLearnMoreOpen] = useState(false);
+    const [scrollY, setScrollY] = useState(0);
+    const [isVisible, setIsVisible] = useState({});
+    const [stats, setStats] = useState({ secure: 0, access: 0, speed: 0 });
+    const observerRef = useRef(null);
+
+    // Scroll handler for parallax and sticky nav
+    useEffect(() => {
+        const handleScroll = () => {
+            setScrollY(window.scrollY);
+        };
+        
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // Intersection Observer for scroll-triggered animations
+    useEffect(() => {
+        observerRef.current = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        setIsVisible((prev) => ({
+                            ...prev,
+                            [entry.target.id]: true,
+                        }));
+                    }
+                });
+            },
+            { threshold: 0.1, rootMargin: '0px 0px -100px 0px' }
+        );
+
+        // Observe all sections
+        const sections = document.querySelectorAll('[data-animate]');
+        sections.forEach((section) => {
+            if (observerRef.current) {
+                observerRef.current.observe(section);
+            }
+        });
+
+        return () => {
+            if (observerRef.current) {
+                observerRef.current.disconnect();
+            }
+        };
+    }, []);
+
+    // Animated counter for stats
+    useEffect(() => {
+        const duration = 2000;
+        const steps = 60;
+        const increment = duration / steps;
+        
+        let currentStep = 0;
+        const timer = setInterval(() => {
+            currentStep++;
+            const progress = currentStep / steps;
+            
+            setStats({
+                secure: Math.floor(progress * 100),
+                access: Math.floor(progress * 24),
+                speed: Math.floor(progress * 100),
+            });
+            
+            if (currentStep >= steps) {
+                clearInterval(timer);
+                setStats({ secure: 100, access: 24, speed: 100 });
+            }
+        }, increment);
+        
+        return () => clearInterval(timer);
+    }, []);
     const features = [
         {
             icon: FileText,
-            title: "IPCRF Management",
-            description: "Comprehensive Individual Performance Commitment and Review Form management with digital submission and rating system.",
-            color: "bg-blue-500"
+            title: "Easy IPCRF Submission",
+            description: "Submit your Individual Performance Commitment and Review Forms digitally with a simple, intuitive interface. Track your submissions in real-time.",
+            color: "bg-[#1a5f3a]"
         },
         {
-            icon: Users,
-            title: "Teacher Management",
-            description: "Complete teacher profile management, position tracking, and promotion history with role-based access control.",
-            color: "bg-green-500"
-        },
-        {
-            icon: BarChart3,
-            title: "Analytics Dashboard",
-            description: "Real-time insights with interactive charts, submission trends, ratings distribution, and performance metrics.",
-            color: "bg-purple-500"
-        },
-        {
-            icon: Shield,
-            title: "Audit Trail",
-            description: "Complete activity logging and audit trail for accountability, transparency, and compliance tracking.",
-            color: "bg-red-500"
+            icon: TrendingUp,
+            title: "Track Your Growth",
+            description: "Monitor your professional development journey with detailed performance insights and personalized feedback on your achievements.",
+            color: "bg-[#fbbf24]"
         },
         {
             icon: Award,
-            title: "Performance Rating",
-            description: "Structured KRA-based evaluation system with configurable objectives and comprehensive rating workflows.",
-            color: "bg-yellow-500"
+            title: "Career Advancement",
+            description: "Access your promotion history, view eligibility status, and track your path to career advancement with transparent evaluation criteria.",
+            color: "bg-[#1a5f3a]"
         },
         {
-            icon: Settings,
-            title: "Flexible Configuration",
-            description: "Year-specific KRA and objective configuration allowing adaptation to changing evaluation requirements.",
-            color: "bg-indigo-500"
+            icon: Target,
+            title: "Goal Setting & KRAs",
+            description: "Set clear Key Result Areas and objectives aligned with DepEd standards. Receive guidance on achieving your professional goals.",
+            color: "bg-[#fbbf24]"
+        },
+        {
+            icon: BarChart3,
+            title: "Performance Dashboard",
+            description: "View your performance ratings, submission history, and evaluation results in one comprehensive, easy-to-understand dashboard.",
+            color: "bg-[#1a5f3a]"
+        },
+        {
+            icon: CheckCircle,
+            title: "Instant Notifications",
+            description: "Stay informed with real-time updates on submission status, evaluation results, and important deadlines. Never miss an opportunity.",
+            color: "bg-[#fbbf24]"
         }
     ];
 
-    const userRoles = [
+    const benefits = [
         {
-            title: "Super Admin",
-            description: "Full system access with approval workflows and configuration management",
-            icon: Shield
+            title: "Save Time",
+            description: "Submit your IPCRF documents in minutes, not hours. No more paperwork or manual filing.",
+            icon: Clock,
+            stat: "90%",
+            statLabel: "Time Saved"
         },
         {
-            title: "Admin/Evaluator",
-            description: "Review submissions, rate performance, and manage teacher records",
-            icon: CheckCircle
+            title: "Stay Organized",
+            description: "All your documents, ratings, and feedback in one secure, accessible location.",
+            icon: FileText,
+            stat: "100%",
+            statLabel: "Digital"
         },
         {
-            title: "Teachers",
-            description: "Submit IPCRF documents, track submissions, and view evaluation results",
-            icon: Users
+            title: "Grow Your Career",
+            description: "Clear visibility into your performance helps you identify strengths and areas for improvement.",
+            icon: TrendingUp,
+            stat: "24/7",
+            statLabel: "Access"
         }
     ];
 
     const workflow = [
         {
             step: "1",
-            title: "Submit",
-            description: "Teachers upload IPCRF documents",
-            icon: FileText
+            title: "Create Account",
+            description: "Get your credentials from your school administrator",
+            icon: Users
         },
         {
             step: "2",
-            title: "Review",
-            description: "Admins review and validate submissions",
-            icon: Clock
+            title: "Upload Documents",
+            description: "Submit your IPCRF forms digitally with ease",
+            icon: FileText
         },
         {
             step: "3",
-            title: "Rate",
-            description: "Evaluate performance using KRA framework",
-            icon: Award
+            title: "Track Progress",
+            description: "Monitor your submission status in real-time",
+            icon: Clock
         },
         {
             step: "4",
-            title: "Track",
-            description: "Monitor progress and generate reports",
-            icon: TrendingUp
+            title: "View Results",
+            description: "Access your ratings and feedback instantly",
+            icon: Award
         }
     ];
 
@@ -109,18 +188,30 @@ export default function Welcome({ auth }) {
             <Head title="Welcome to ISAT DMS" />
             
             <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
-                {/* Navigation */}
-                <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+                {/* Navigation - Enhanced with glassmorphism and smooth transitions */}
+                <nav 
+                    className={`bg-white/90 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 transition-all duration-300 ${
+                        scrollY > 50 ? 'shadow-lg' : ''
+                    }`}
+                    style={{
+                        transform: scrollY > 50 ? 'translateY(0)' : 'translateY(0)',
+                    }}
+                >
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                         <div className="flex justify-between items-center h-16">
-                            <div className="flex items-center gap-3">
-                                <img 
-                                    src="/pictures/isat.jpg" 
-                                    alt="ISAT Logo" 
-                                    className="h-10 w-10 rounded-lg object-cover"
-                                />
+                            <div className="flex items-center gap-3 group cursor-pointer">
+                                <div className="relative">
+                                    <img 
+                                        src="/pictures/isat.jpg" 
+                                        alt="ISAT Logo" 
+                                        className="h-10 w-10 rounded-lg object-cover transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
+                                    />
+                                    <div className="absolute inset-0 rounded-lg bg-gradient-to-br from-green-400/20 to-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                </div>
                                 <div>
-                                    <h1 className="text-xl font-bold text-gray-900">ISAT DMS</h1>
+                                    <h1 className="text-xl font-bold text-gray-900 transition-colors duration-300 group-hover:text-green-600">
+                                        ISAT DMS
+                                    </h1>
                                     <p className="text-xs text-gray-600">Document Management System</p>
                                 </div>
                             </div>
@@ -129,15 +220,15 @@ export default function Welcome({ auth }) {
                                 {auth.user ? (
                                     <Link
                                         href={route('dashboard')}
-                                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                        className="group inline-flex items-center px-6 py-2.5 bg-gradient-to-r from-[#1a5f3a] to-[#1a5f3a]/90 text-white rounded-lg hover:from-[#1a5f3a]/90 hover:to-[#1a5f3a] transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                                     >
                                         Go to Dashboard
-                                        <ArrowRight className="ml-2 h-4 w-4" />
+                                        <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                                     </Link>
                                 ) : (
                                     <Link
                                         href={route('login')}
-                                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                        className="group px-6 py-2.5 bg-gradient-to-r from-[#1a5f3a] to-[#1a5f3a]/90 text-white rounded-lg hover:from-[#1a5f3a]/90 hover:to-[#1a5f3a] transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                                     >
                                         Log in
                                     </Link>
@@ -147,34 +238,47 @@ export default function Welcome({ auth }) {
                     </div>
                 </nav>
 
-                {/* Hero Section */}
-                <section className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
-                    {/* Background Decoration */}
+                {/* Hero Section - Enhanced with parallax */}
+                <section 
+                    className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden min-h-[90vh] flex items-center"
+                    id="hero"
+                    data-animate
+                >
+                    {/* Background Decoration with parallax */}
                     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-green-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-                        <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-blue-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-                        <div className="absolute bottom-0 left-1/2 w-[500px] h-[500px] bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+                        <div 
+                            className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#1a5f3a]/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"
+                            style={{ transform: `translateY(${scrollY * 0.1}px)` }}
+                        ></div>
+                        <div 
+                            className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#fbbf24]/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"
+                            style={{ transform: `translateY(${scrollY * 0.15}px)` }}
+                        ></div>
+                        <div 
+                            className="absolute bottom-0 left-1/2 w-[500px] h-[500px] bg-[#1a5f3a]/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"
+                            style={{ transform: `translateY(${scrollY * 0.05}px)` }}
+                        ></div>
                     </div>
 
                     <div className="max-w-7xl mx-auto relative">
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                            {/* Left Content */}
+                            {/* Left Content - Enhanced animations */}
                             <div className="text-left space-y-8">
-                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-full text-sm font-medium animate-fade-in">
-                                    <Zap className="h-4 w-4" />
-                                    Secure & Efficient Document Management
+                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#1a5f3a]/10 to-[#fbbf24]/10 text-[#1a5f3a] rounded-full text-sm font-medium animate-fade-in border border-[#1a5f3a]/30 hover:shadow-md transition-all duration-300">
+                                    <Sparkles className="h-4 w-4 animate-pulse" />
+                                    For Teachers, By Educators
                                 </div>
                                 
                                 <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight animate-slide-up">
-                                    ISAT Document
-                                    <span className="block text-transparent bg-clip-text bg-gradient-to-r from-green-600 via-blue-600 to-purple-600 mt-2">
-                                        Management System
+                                    Empower Your
+                                    <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#1a5f3a] via-[#fbbf24] to-[#1a5f3a] mt-2 animate-gradient">
+                                        Teaching Career
                                     </span>
                                 </h1>
                                 
                                 <p className="text-xl text-gray-600 leading-relaxed animate-slide-up animation-delay-200">
-                                    Streamline your IPCRF evaluation process with our comprehensive digital platform. 
-                                    Manage submissions, track performance, and generate insights—all in one place.
+                                    Digital IPCRF submission and performance tracking made simple. 
+                                    Focus on teaching while we handle your professional documentation.
                                 </p>
                                 
                                 <div className="flex flex-col sm:flex-row items-start gap-4 animate-slide-up animation-delay-400">
@@ -182,62 +286,79 @@ export default function Welcome({ auth }) {
                                         <>
                                             <Link
                                                 href={route('login')}
-                                                className="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all transform hover:scale-105 hover:shadow-xl font-semibold"
+                                                className="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-[#1a5f3a] to-[#1a5f3a]/90 text-white rounded-xl hover:from-[#1a5f3a]/90 hover:to-[#1a5f3a] transition-all transform hover:scale-105 hover:shadow-2xl font-semibold overflow-hidden"
                                             >
-                                                Sign In to Get Started
-                                                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                                                <span className="absolute inset-0 w-full h-full bg-[#fbbf24]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                                                <span className="relative">Start Your Journey</span>
+                                                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform relative" />
                                             </Link>
                                             <button 
                                                 onClick={() => setIsLearnMoreOpen(true)}
-                                                className="inline-flex items-center px-8 py-4 bg-white text-gray-700 rounded-xl hover:bg-gray-50 transition-all border-2 border-gray-200 hover:border-green-300 font-semibold"
+                                                className="group inline-flex items-center px-8 py-4 bg-white text-[#1a5f3a] rounded-xl hover:bg-[#fbbf24]/10 transition-all border-2 border-[#1a5f3a]/30 hover:border-[#1a5f3a] font-semibold transform hover:scale-105 hover:shadow-lg"
                                             >
-                                                <Eye className="mr-2 h-5 w-5" />
-                                                Learn More
+                                                <Eye className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
+                                                About ISAT
                                             </button>
                                         </>
                                     ) : (
                                         <Link
                                             href={route('dashboard')}
-                                            className="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all transform hover:scale-105 hover:shadow-xl font-semibold"
+                                            className="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-[#1a5f3a] to-[#1a5f3a]/90 text-white rounded-xl hover:from-[#1a5f3a]/90 hover:to-[#1a5f3a] transition-all transform hover:scale-105 hover:shadow-2xl font-semibold overflow-hidden"
                                         >
-                                            Go to Dashboard
-                                            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                                            <span className="absolute inset-0 w-full h-full bg-[#fbbf24]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                                            <span className="relative">Go to My Dashboard</span>
+                                            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform relative" />
                                         </Link>
                                     )}
                                 </div>
 
-                                {/* Stats */}
+                                {/* Stats - Animated counters */}
                                 <div className="grid grid-cols-3 gap-6 pt-8 border-t border-gray-200 animate-fade-in animation-delay-600">
-                                    <div>
-                                        <div className="text-3xl font-bold text-green-600">100%</div>
+                                    <div className="group cursor-default">
+                                        <div className="text-3xl font-bold text-[#1a5f3a] transition-all duration-300 group-hover:scale-110">
+                                            {stats.secure}%
+                                        </div>
                                         <div className="text-sm text-gray-600 mt-1">Secure</div>
                                     </div>
-                                    <div>
-                                        <div className="text-3xl font-bold text-blue-600">24/7</div>
+                                    <div className="group cursor-default">
+                                        <div className="text-3xl font-bold text-[#fbbf24] transition-all duration-300 group-hover:scale-110">
+                                            {stats.access}/7
+                                        </div>
                                         <div className="text-sm text-gray-600 mt-1">Access</div>
                                     </div>
-                                    <div>
-                                        <div className="text-3xl font-bold text-purple-600">Fast</div>
-                                        <div className="text-sm text-gray-600 mt-1">Processing</div>
+                                    <div className="group cursor-default">
+                                        <div className="text-3xl font-bold text-[#1a5f3a] transition-all duration-300 group-hover:scale-110">
+                                            {stats.speed}%
+                                        </div>
+                                        <div className="text-sm text-gray-600 mt-1">Fast</div>
                                     </div>
+                                </div>
+                                
+                                {/* Scroll indicator */}
+                                <div className="flex justify-center pt-8 animate-bounce">
+                                    <ChevronDown className="h-8 w-8 text-gray-400" />
                                 </div>
                             </div>
 
-                            {/* Right Content - Image/Illustration */}
+                            {/* Right Content - Enhanced with 3D effect */}
                             <div className="relative animate-fade-in animation-delay-400">
-                                <div className="relative">
-                                    {/* Main Image Container */}
-                                    <div className="relative bg-gradient-to-br from-green-100 to-blue-100 rounded-3xl p-8 shadow-2xl transform hover:scale-105 transition-transform duration-500">
-                                        <img 
-                                            src="/pictures/isat.jpg" 
-                                            alt="ISAT" 
-                                            className="w-full h-auto rounded-2xl shadow-lg"
-                                        />
+                                <div className="relative perspective-1000">
+                                    {/* Main Image Container with glassmorphism */}
+                                    <div className="relative bg-gradient-to-br from-green-100 to-blue-100 rounded-3xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-500 hover:rotate-1 backdrop-blur-sm">
+                                        <div className="relative overflow-hidden rounded-2xl">
+                                            <img 
+                                                src="/pictures/isat.jpg" 
+                                                alt="ISAT" 
+                                                className="w-full h-auto shadow-lg transition-transform duration-700 hover:scale-110"
+                                                loading="eager"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                                        </div>
                                         
-                                        {/* Floating Cards */}
-                                        <div className="absolute -top-6 -right-6 bg-white rounded-xl shadow-xl p-4 animate-float">
+                                        {/* Floating Cards with enhanced animations */}
+                                        <div className="absolute -top-6 -right-6 bg-white/95 backdrop-blur-sm rounded-xl shadow-xl p-4 animate-float hover:shadow-2xl transition-shadow duration-300 border border-green-100">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                                <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center">
                                                     <CheckCircle className="h-6 w-6 text-green-600" />
                                                 </div>
                                                 <div>
@@ -247,9 +368,9 @@ export default function Welcome({ auth }) {
                                             </div>
                                         </div>
                                         
-                                        <div className="absolute -bottom-6 -left-6 bg-white rounded-xl shadow-xl p-4 animate-float animation-delay-2000">
+                                        <div className="absolute -bottom-6 -left-6 bg-white/95 backdrop-blur-sm rounded-xl shadow-xl p-4 animate-float animation-delay-2000 hover:shadow-2xl transition-shadow duration-300 border border-blue-100">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
                                                     <Award className="h-6 w-6 text-blue-600" />
                                                 </div>
                                                 <div>
@@ -265,19 +386,23 @@ export default function Welcome({ auth }) {
                     </div>
                 </section>
 
-                {/* Features Section */}
-                <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white">
+                {/* Features Section - Enhanced with scroll animations */}
+                <section 
+                    className="py-24 px-4 sm:px-6 lg:px-8 bg-white"
+                    id="features"
+                    data-animate
+                >
                     <div className="max-w-7xl mx-auto">
                         <div className="text-center mb-16 animate-fade-in">
-                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-medium mb-4">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a5f3a]/10 text-[#1a5f3a] rounded-full text-sm font-medium mb-4 border border-[#1a5f3a]/30">
                                 <Target className="h-4 w-4" />
-                                Powerful Features
+                                Built for Teachers
                             </div>
                             <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                                Everything You Need
+                                Everything You Need to Excel
                             </h2>
                             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                                Comprehensive tools designed to streamline teacher performance evaluations
+                                Powerful tools designed to support your professional growth and simplify your documentation process
                             </p>
                         </div>
 
@@ -287,22 +412,32 @@ export default function Welcome({ auth }) {
                                 return (
                                     <div 
                                         key={index}
-                                        className="group relative bg-gradient-to-br from-white to-gray-50 rounded-2xl p-8 border-2 border-gray-100 hover:border-green-300 transition-all hover:shadow-2xl transform hover:-translate-y-2 duration-300 animate-fade-in"
-                                        style={{ animationDelay: `${index * 100}ms` }}
+                                        className={`group relative bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-[#1a5f3a] transition-all hover:shadow-2xl transform hover:-translate-y-2 duration-300 cursor-pointer overflow-hidden ${
+                                            isVisible.features ? 'animate-fade-in-up' : 'opacity-0'
+                                        }`}
+                                        style={{ 
+                                            animationDelay: `${index * 150}ms`
+                                        }}
                                     >
-                                        {/* Gradient overlay on hover */}
-                                        <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-blue-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
+                                        {/* Gradient overlay on hover - fixed z-index */}
+                                        <div className="absolute inset-0 bg-gradient-to-br from-[#1a5f3a]/5 to-[#fbbf24]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                                         
-                                        <div className="relative">
-                                            <div className={`${feature.color} w-14 h-14 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg`}>
-                                                <Icon className="h-7 w-7 text-white" />
+                                        <div className="relative z-10">
+                                            <div className={`${feature.color} w-16 h-16 rounded-xl flex items-center justify-center mb-6 group-hover:scale-105 transition-all duration-300 shadow-md group-hover:shadow-lg`}>
+                                                <Icon className="h-8 w-8 text-white" />
                                             </div>
-                                            <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-green-600 transition-colors">
+                                            <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-[#1a5f3a] transition-colors duration-300">
                                                 {feature.title}
                                             </h3>
                                             <p className="text-gray-600 leading-relaxed">
                                                 {feature.description}
                                             </p>
+                                            
+                                            {/* Hover indicator */}
+                                            <div className="mt-4 flex items-center text-[#1a5f3a] opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                                                <span className="text-sm font-semibold">Learn more</span>
+                                                <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+                                            </div>
                                         </div>
                                     </div>
                                 );
@@ -311,15 +446,27 @@ export default function Welcome({ auth }) {
                     </div>
                 </section>
 
-                {/* Workflow Section */}
-                <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-green-50 to-blue-50">
-                    <div className="max-w-7xl mx-auto">
+                {/* Workflow Section - Enhanced */}
+                <section 
+                    className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-[#1a5f3a]/5 to-[#fbbf24]/10 relative overflow-hidden"
+                    id="workflow"
+                    data-animate
+                >
+                    {/* Decorative elements */}
+                    <div className="absolute top-0 left-0 w-64 h-64 bg-[#1a5f3a]/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+                    <div className="absolute bottom-0 right-0 w-64 h-64 bg-[#fbbf24]/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse animation-delay-2000"></div>
+                    
+                    <div className="max-w-7xl mx-auto relative z-10">
                         <div className="text-center mb-16">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#fbbf24]/10 text-[#1a5f3a] rounded-full text-sm font-medium mb-4 border border-[#fbbf24]/50">
+                                <Zap className="h-4 w-4" />
+                                Quick & Easy
+                            </div>
                             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                                Simple Workflow
+                                How It Works
                             </h2>
                             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                                Streamlined process from submission to evaluation
+                                Four simple steps to manage your professional documentation
                             </p>
                         </div>
 
@@ -328,11 +475,15 @@ export default function Welcome({ auth }) {
                                 const Icon = item.icon;
                                 return (
                                     <div key={index} className="relative">
-                                        <div className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-green-300 transition-all hover:shadow-lg text-center">
-                                            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold">
+                                        <div className={`bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-[#1a5f3a] transition-all hover:shadow-xl text-center transform hover:-translate-y-2 duration-300 ${
+                                            isVisible.workflow ? 'animate-fade-in-up' : 'opacity-0'
+                                        }`}
+                                        style={{ animationDelay: `${index * 200}ms` }}
+                                        >
+                                            <div className="w-16 h-16 bg-gradient-to-br from-[#1a5f3a] to-[#fbbf24] rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold shadow-lg hover:shadow-2xl transition-shadow hover:scale-110 duration-300">
                                                 {item.step}
                                             </div>
-                                            <Icon className="h-8 w-8 text-green-600 mx-auto mb-3" />
+                                            <Icon className="h-8 w-8 text-[#1a5f3a] mx-auto mb-3 hover:scale-110 transition-transform duration-300" />
                                             <h3 className="text-lg font-semibold text-gray-900 mb-2">
                                                 {item.title}
                                             </h3>
@@ -341,8 +492,8 @@ export default function Welcome({ auth }) {
                                             </p>
                                         </div>
                                         {index < workflow.length - 1 && (
-                                            <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                                                <ArrowRight className="h-6 w-6 text-gray-300" />
+                                            <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
+                                                <ArrowRight className="h-6 w-6 text-[#fbbf24] animate-pulse" />
                                             </div>
                                         )}
                                     </div>
@@ -352,34 +503,53 @@ export default function Welcome({ auth }) {
                     </div>
                 </section>
 
-                {/* User Roles Section */}
-                <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+                {/* Benefits Section - Enhanced */}
+                <section 
+                    className="py-20 px-4 sm:px-6 lg:px-8 bg-white"
+                    id="benefits"
+                    data-animate
+                >
                     <div className="max-w-7xl mx-auto">
                         <div className="text-center mb-16">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#fbbf24]/10 text-[#1a5f3a] rounded-full text-sm font-medium mb-4 border border-[#fbbf24]/50">
+                                <Award className="h-4 w-4" />
+                                Why Teachers Love Us
+                            </div>
                             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                                Built for Everyone
+                                Focus on Teaching, Not Paperwork
                             </h2>
                             <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                                Role-based access ensures the right tools for the right users
+                                Join hundreds of teachers who have simplified their professional documentation
                             </p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {userRoles.map((role, index) => {
-                                const Icon = role.icon;
+                            {benefits.map((benefit, index) => {
+                                const Icon = benefit.icon;
                                 return (
                                     <div 
                                         key={index}
-                                        className="bg-gradient-to-br from-gray-50 to-white rounded-xl p-8 border-2 border-gray-200 hover:border-green-300 transition-all hover:shadow-xl text-center"
+                                        className={`group relative bg-gradient-to-br from-white to-gray-50 rounded-2xl p-8 border-2 border-gray-200 hover:border-[#1a5f3a] transition-all hover:shadow-2xl text-center transform hover:-translate-y-2 duration-300 ${
+                                            isVisible.benefits ? 'animate-fade-in-up' : 'opacity-0'
+                                        }`}
+                                        style={{ animationDelay: `${index * 200}ms` }}
                                     >
-                                        <div className="w-16 h-16 bg-gradient-to-br from-green-100 to-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                            <Icon className="h-8 w-8 text-green-600" />
+                                        {/* Stat Badge */}
+                                        <div className="absolute -top-4 right-8 bg-gradient-to-r from-[#1a5f3a] to-[#fbbf24] text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+                                            {benefit.stat}
                                         </div>
-                                        <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                                            {role.title}
+                                        
+                                        <div className="w-20 h-20 bg-gradient-to-br from-[#1a5f3a]/20 to-[#fbbf24]/20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-all duration-300 shadow-md group-hover:shadow-lg">
+                                            <Icon className="h-10 w-10 text-[#1a5f3a] group-hover:scale-110 transition-transform duration-300" />
+                                        </div>
+                                        <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-[#1a5f3a] transition-colors duration-300">
+                                            {benefit.title}
                                         </h3>
-                                        <p className="text-gray-600">
-                                            {role.description}
+                                        <p className="text-gray-600 mb-4 group-hover:text-gray-700 transition-colors duration-300">
+                                            {benefit.description}
+                                        </p>
+                                        <p className="text-sm text-[#1a5f3a] font-semibold">
+                                            {benefit.statLabel}
                                         </p>
                                     </div>
                                 );
@@ -445,27 +615,39 @@ export default function Welcome({ auth }) {
                 </footer>
             </div>
 
-            {/* Learn More Modal */}
+            {/* Learn More Modal - Enhanced */}
             {isLearnMoreOpen && (
-                <div className="fixed inset-0 z-50 overflow-y-auto">
+                <div className="fixed inset-0 z-50 overflow-y-auto animate-fade-in">
                     <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-                        {/* Background overlay */}
+                        {/* Background overlay with blur */}
                         <div 
-                            className="fixed inset-0 transition-opacity bg-gray-900 bg-opacity-75"
+                            className="fixed inset-0 transition-all duration-300 bg-gray-900/80 backdrop-blur-sm"
                             onClick={() => setIsLearnMoreOpen(false)}
+                            style={{ animation: 'fade-in 0.3s ease-out' }}
                         ></div>
 
-                        {/* Modal panel */}
-                        <div className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
-                            {/* Header */}
-                            <div className="bg-gradient-to-r from-green-600 to-blue-600 px-6 py-6">
-                                <div className="flex items-center justify-between">
+                        {/* Modal panel with scale animation */}
+                        <div 
+                            className="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full"
+                            style={{ animation: 'scale-in 0.3s ease-out' }}
+                        >
+                            {/* Header - Enhanced */}
+                            <div className="bg-gradient-to-r from-[#1a5f3a] via-[#fbbf24] to-[#1a5f3a] px-6 py-6 relative overflow-hidden">
+                                {/* Animated background pattern */}
+                                <div className="absolute inset-0 opacity-10">
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent animate-shimmer"></div>
+                                </div>
+                                
+                                <div className="flex items-center justify-between relative z-10">
                                     <div className="flex items-center gap-3">
-                                        <img 
-                                            src="/pictures/isat.jpg" 
-                                            alt="ISAT Logo" 
-                                            className="h-12 w-12 rounded-lg object-cover"
-                                        />
+                                        <div className="relative group">
+                                            <img 
+                                                src="/pictures/isat.jpg" 
+                                                alt="ISAT Logo" 
+                                                className="h-12 w-12 rounded-lg object-cover transition-transform duration-300 group-hover:scale-110"
+                                            />
+                                            <div className="absolute inset-0 rounded-lg bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                        </div>
                                         <div>
                                             <h3 className="text-2xl font-bold text-white">About ISAT</h3>
                                             <p className="text-green-100 text-sm">Vision, Mission, Goals & Objectives</p>
@@ -473,7 +655,8 @@ export default function Welcome({ auth }) {
                                     </div>
                                     <button
                                         onClick={() => setIsLearnMoreOpen(false)}
-                                        className="text-white hover:text-gray-200 transition-colors"
+                                        className="text-white hover:text-gray-200 transition-all duration-300 hover:rotate-90 hover:scale-110 p-2 rounded-lg hover:bg-white/10"
+                                        aria-label="Close modal"
                                     >
                                         <X className="h-6 w-6" />
                                     </button>
@@ -627,13 +810,14 @@ export default function Welcome({ auth }) {
                                 </div>
                             </div>
 
-                            {/* Footer */}
-                            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
+                            {/* Footer - Enhanced */}
+                            <div className="bg-gradient-to-r from-gray-50 to-[#fbbf24]/10 px-6 py-4 border-t border-gray-200">
                                 <button
                                     onClick={() => setIsLearnMoreOpen(false)}
-                                    className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-lg hover:from-green-700 hover:to-blue-700 transition-all font-semibold"
+                                    className="group w-full sm:w-auto px-8 py-3 bg-gradient-to-r from-[#1a5f3a] to-[#1a5f3a]/90 text-white rounded-lg hover:from-[#1a5f3a]/90 hover:to-[#1a5f3a] transition-all font-semibold transform hover:scale-105 hover:shadow-lg relative overflow-hidden"
                                 >
-                                    Close
+                                    <span className="absolute inset-0 w-full h-full bg-[#fbbf24]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                                    <span className="relative">Close</span>
                                 </button>
                             </div>
                         </div>
@@ -642,61 +826,235 @@ export default function Welcome({ auth }) {
             )}
 
             <style jsx>{`
+                /* Performance-optimized animations using GPU acceleration */
                 @keyframes blob {
-                    0% { transform: translate(0px, 0px) scale(1); }
-                    33% { transform: translate(30px, -50px) scale(1.1); }
-                    66% { transform: translate(-20px, 20px) scale(0.9); }
-                    100% { transform: translate(0px, 0px) scale(1); }
+                    0% { 
+                        transform: translate3d(0px, 0px, 0) scale(1);
+                    }
+                    33% { 
+                        transform: translate3d(30px, -50px, 0) scale(1.1);
+                    }
+                    66% { 
+                        transform: translate3d(-20px, 20px, 0) scale(0.9);
+                    }
+                    100% { 
+                        transform: translate3d(0px, 0px, 0) scale(1);
+                    }
                 }
+                
                 .animate-blob {
                     animation: blob 7s infinite;
+                    will-change: transform;
                 }
+                
                 .animation-delay-2000 {
                     animation-delay: 2s;
                 }
+                
                 .animation-delay-4000 {
                     animation-delay: 4s;
                 }
+                
                 @keyframes float {
-                    0%, 100% { transform: translateY(0px); }
-                    50% { transform: translateY(-20px); }
+                    0%, 100% { 
+                        transform: translateY(0px) translateZ(0);
+                    }
+                    50% { 
+                        transform: translateY(-20px) translateZ(0);
+                    }
                 }
+                
                 .animate-float {
                     animation: float 3s ease-in-out infinite;
+                    will-change: transform;
                 }
+                
                 @keyframes fade-in {
-                    from { opacity: 0; }
-                    to { opacity: 1; }
-                }
-                .animate-fade-in {
-                    animation: fade-in 0.6s ease-out forwards;
-                }
-                @keyframes slide-up {
                     from { 
                         opacity: 0;
-                        transform: translateY(30px);
+                        transform: translateZ(0);
                     }
                     to { 
                         opacity: 1;
-                        transform: translateY(0);
+                        transform: translateZ(0);
                     }
                 }
+                
+                .animate-fade-in {
+                    animation: fade-in 0.6s ease-out forwards;
+                }
+                
+                @keyframes slide-up {
+                    from { 
+                        opacity: 0;
+                        transform: translate3d(0, 30px, 0);
+                    }
+                    to { 
+                        opacity: 1;
+                        transform: translate3d(0, 0, 0);
+                    }
+                }
+                
                 .animate-slide-up {
                     animation: slide-up 0.6s ease-out forwards;
+                    will-change: transform, opacity;
                 }
+                
+                @keyframes fade-in-up {
+                    from {
+                        opacity: 0;
+                        transform: translate3d(0, 40px, 0);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translate3d(0, 0, 0);
+                    }
+                }
+                
+                .animate-fade-in-up {
+                    animation: fade-in-up 0.8s ease-out forwards;
+                    will-change: transform, opacity;
+                }
+                
+                @keyframes gradient {
+                    0%, 100% {
+                        background-position: 0% 50%;
+                    }
+                    50% {
+                        background-position: 100% 50%;
+                    }
+                }
+                
+                .animate-gradient {
+                    background-size: 200% 200%;
+                    animation: gradient 3s ease infinite;
+                }
+                
                 .animation-delay-200 {
                     animation-delay: 0.2s;
                     opacity: 0;
                 }
+                
                 .animation-delay-400 {
                     animation-delay: 0.4s;
                     opacity: 0;
                 }
+                
                 .animation-delay-600 {
                     animation-delay: 0.6s;
                     opacity: 0;
                 }
+                
+                /* 3D perspective for cards */
+                .perspective-1000 {
+                    perspective: 1000px;
+                }
+                
+                /* Smooth scroll behavior */
+                html {
+                    scroll-behavior: smooth;
+                }
+                
+                /* Accessibility: Respect user's motion preferences */
+                @media (prefers-reduced-motion: reduce) {
+                    *,
+                    *::before,
+                    *::after {
+                        animation-duration: 0.01ms !important;
+                        animation-iteration-count: 1 !important;
+                        transition-duration: 0.01ms !important;
+                        scroll-behavior: auto !important;
+                    }
+                    
+                    .animate-blob,
+                    .animate-float,
+                    .animate-pulse,
+                    .animate-bounce {
+                        animation: none !important;
+                    }
+                }
+                
+                /* Loading optimization */
+                img {
+                    content-visibility: auto;
+                }
+                
+                /* GPU acceleration hints */
+                .transform,
+                .transition-transform,
+                .hover\\:scale-105,
+                .hover\\:scale-110,
+                .group-hover\\:scale-110 {
+                    will-change: transform;
+                }
+                
+                /* Remove will-change after animation completes */
+                .animate-fade-in,
+                .animate-slide-up,
+                .animate-fade-in-up {
+                    animation-fill-mode: forwards;
+                }
+                
+                @keyframes shimmer {
+                    0% {
+                        transform: translateX(-100%);
+                    }
+                    100% {
+                        transform: translateX(100%);
+                    }
+                }
+                
+                /* Focus visible for accessibility */
+                *:focus-visible {
+                    outline: 2px solid #1a5f3a;
+                    outline-offset: 2px;
+                    border-radius: 4px;
+                }
+                
+                /* High contrast mode support */
+                @media (prefers-contrast: high) {
+                    .bg-gradient-to-r,
+                    .bg-gradient-to-br {
+                        background: #1a5f3a !important;
+                    }
+                }
+                
+                /* Modal animations */
+                @keyframes scale-in {
+                    from {
+                        opacity: 0;
+                        transform: scale(0.95) translateZ(0);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: scale(1) translateZ(0);
+                    }
+                }
+                
+                @keyframes shimmer {
+                    from {
+                        transform: translateX(-100%);
+                    }
+                    to {
+                        transform: translateX(100%);
+                    }
+                }
+                
+                .animate-shimmer {
+                    animation: shimmer 3s infinite;
+                }
             `}</style>
+            
+            {/* Scroll to top button */}
+            {scrollY > 500 && (
+                <button
+                    onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                    className="fixed bottom-8 right-8 z-40 p-4 bg-gradient-to-r from-[#1a5f3a] to-[#1a5f3a]/90 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 animate-fade-in group"
+                    aria-label="Scroll to top"
+                >
+                    <ChevronDown className="h-6 w-6 rotate-180 group-hover:-translate-y-1 transition-transform duration-300" />
+                </button>
+            )}
         </>
     );
 }

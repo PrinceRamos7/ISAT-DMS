@@ -32,12 +32,18 @@ class IpcrfManagementController extends Controller
         $yearFilter = $request->input('year', '');
 
         $query = User::role('teacher')
-            ->with(['currentPosition', 'ipcrfRatings' => function ($q) use ($yearFilter) {
-                if ($yearFilter) {
-                    $q->where('rating_period', $yearFilter);
+            ->with([
+                'currentPosition', 
+                'ipcrfRatings' => function ($q) use ($yearFilter) {
+                    if ($yearFilter) {
+                        $q->where('rating_period', $yearFilter);
+                    }
+                    $q->latest();
+                },
+                'teacherSubmissions' => function ($q) {
+                    $q->latest()->limit(10);
                 }
-                $q->latest();
-            }]);
+            ]);
 
         if ($search) {
             $query->where('name', 'like', "%{$search}%");
@@ -103,6 +109,10 @@ class IpcrfManagementController extends Controller
             'ratings.*.rating.max' => 'Rating cannot exceed 5 stars.',
         ]);
 
+        $teacherId = $request->teacher_id;
+        $totalRating = 0;
+        $submissionCount = count($request->ratings);
+
         // Update each submission with its rating
         foreach ($request->ratings as $ratingData) {
             TeacherSubmission::where('id', $ratingData['submission_id'])
@@ -112,9 +122,34 @@ class IpcrfManagementController extends Controller
                     'reviewed_by' => auth()->id(),
                     'reviewed_at' => now(),
                 ]);
+            
+            $totalRating += $ratingData['rating'];
         }
 
-        return back()->with('success', 'All ratings submitted successfully!');
+        // Calculate average rating
+        $averageRating = $submissionCount > 0 ? round($totalRating / $submissionCount, 2) : 0;
+
+        // Get current year for rating period
+        $ratingPeriod = now()->year . '-' . (now()->year + 1);
+
+        // Create or update IPCRF Rating record
+        $ipcrfRating = IpcrfRating::updateOrCreate(
+            [
+                'teacher_id' => $teacherId,
+                'rating_period' => $ratingPeriod,
+            ],
+            [
+                'numerical_rating' => $averageRating,
+                'total_score' => $averageRating * 20, // Convert to 100-point scale
+                'status' => 'submitted',
+                'created_by' => auth()->id(),
+                'kra_details' => [], // Empty for now, can be populated later
+                'remarks' => 'Auto-generated from submission ratings',
+            ]
+        );
+
+        return redirect()->route('admin.ipcrf.submissions')
+            ->with('success', 'All ratings submitted successfully! Average rating: ' . $averageRating . '/5');
     }
 
     public function storeRating(Request $request)

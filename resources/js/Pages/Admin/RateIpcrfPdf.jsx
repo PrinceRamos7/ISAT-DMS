@@ -26,7 +26,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Toaster } from "@/components/ui/sonner";
-import { ArrowLeft, Save, User, Award, Eye, Star, FileText, Download } from 'lucide-react';
+import { ArrowLeft, Save, User, Award, Star, FileText, Download } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 export default function RateIpcrfPdf({ teacher, submissions, auth, flash }) {
     const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
@@ -124,6 +126,332 @@ export default function RateIpcrfPdf({ teacher, submissions, auth, flash }) {
     };
 
     const isTeacher = auth.user.roles?.some(role => role.name === 'teacher');
+
+    // Export single submission to PDF in official IPCRF format
+    const exportToPDF = (submissionIndex) => {
+        try {
+            console.log('Exporting PDF for submission index:', submissionIndex);
+            const submission = submissions[submissionIndex];
+            const rating = ratings[submissionIndex];
+            
+            console.log('Submission:', submission);
+            console.log('Rating:', rating);
+            
+            // Create PDF in landscape orientation
+            const doc = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'legal' // 8.5 x 14 inches
+            });
+
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const pageHeight = doc.internal.pageSize.getHeight();
+            
+            console.log('PDF dimensions:', pageWidth, pageHeight);
+            
+            // Pink/salmon background color
+            doc.setFillColor(255, 192, 203);
+            doc.rect(0, 0, pageWidth, pageHeight, 'F');
+
+        // Add DepEd logo (left) - placeholder
+        // You'll need to add actual logo images
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text('DepEd', 15, 15);
+        
+        // Add BHROD logo (right) - placeholder
+        doc.text('BHROD', pageWidth - 25, 15);
+
+        // Title section
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Official Electronic IPCRF Tool v4.3', pageWidth / 2, 12, { align: 'center' });
+        doc.text('Highly Proficient Regular Teacher', pageWidth / 2, 17, { align: 'center' });
+        doc.text(`SY ${submission.school_year || '2024-2025'}`, pageWidth / 2, 22, { align: 'center' });
+        doc.setFontSize(11);
+        doc.text('PART 1: INDIVIDUAL PERFORMANCE COMMITMENT AND REVIEW FORM', pageWidth / 2, 28, { align: 'center' });
+
+        // Privacy notice
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.text('PRIVACY NOTICE:', 10, 35);
+        doc.setFont('helvetica', 'normal');
+        const privacyText = 'By using this tool, you agree to authorize the Department of Education to collect, process, retain, and dispose of your personal information in accordance with the Data Privacy Act of 2012.';
+        doc.text(privacyText, 10, 38, { maxWidth: pageWidth - 20 });
+
+        // Instructions section
+        doc.setFont('helvetica', 'bold');
+        doc.text('INSTRUCTIONS:', 10, 45);
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(6);
+        const instructions = 'Part 1 shall be accomplished by the Rater during the Phase III: Performance Review and Evaluation of the RPMS Cycle. Fill in empty cells (white) with needed information about the rater and approving authority.';
+        doc.text(instructions, 10, 48, { maxWidth: pageWidth - 20 });
+
+        // Employee information table
+        const employeeData = [
+            [
+                { content: 'Name of Employee:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: teacher.name || '', colSpan: 2, styles: { fillColor: [255, 255, 255] } },
+                { content: 'RATER Last Name:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: auth.user.name?.split(' ').pop() || '', styles: { fillColor: [255, 255, 255] } },
+                { content: 'First:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: auth.user.name?.split(' ')[0] || '', styles: { fillColor: [255, 255, 255] } },
+                { content: 'Middle:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: '', styles: { fillColor: [255, 255, 255] } }
+            ],
+            [
+                { content: 'Position:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: teacher.current_position?.name || 'Master Teacher II', colSpan: 2, styles: { fillColor: [255, 255, 255] } },
+                { content: 'Position:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: auth.user.roles?.[0]?.name || 'Principal IV', styles: { fillColor: [255, 255, 255] } },
+                { content: 'DepEd Email:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: auth.user.email || '', colSpan: 2, styles: { fillColor: [255, 255, 255] } }
+            ],
+            [
+                { content: 'Bureau/Center/Service/Division:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: 'ISABELA SCHOOL OF ARTS AND TRADES - Ilagan Campus', colSpan: 2, styles: { fillColor: [255, 255, 255] } },
+                { content: 'Date of Review:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: new Date().toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }), colSpan: 4, styles: { fillColor: [255, 255, 255] } }
+            ],
+            [
+                { content: 'Rating Period:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: `SY ${submission.school_year || '2024-2025'}`, colSpan: 7, styles: { fillColor: [255, 255, 255] } }
+            ]
+        ];
+
+        autoTable(doc, {
+            startY: 55,
+            body: employeeData,
+            theme: 'grid',
+            styles: {
+                fontSize: 7,
+                cellPadding: 2,
+                lineColor: [0, 0, 0],
+                lineWidth: 0.1
+            },
+            columnStyles: {
+                0: { cellWidth: 45 },
+                1: { cellWidth: 35 },
+                2: { cellWidth: 35 },
+                3: { cellWidth: 35 },
+                4: { cellWidth: 30 },
+                5: { cellWidth: 20 },
+                6: { cellWidth: 30 },
+                7: { cellWidth: 25 }
+            }
+        });
+
+        // Main IPCRF table
+        let currentY = doc.lastAutoTable.finalY + 3;
+
+        // Table headers
+        const headers = [
+            [
+                { content: 'KRA', rowSpan: 3, styles: { halign: 'center', valign: 'middle', fillColor: [144, 238, 144] } },
+                { content: 'Objective\nNo.', rowSpan: 3, styles: { halign: 'center', valign: 'middle', fillColor: [144, 238, 144] } },
+                { content: 'PPST', rowSpan: 3, styles: { halign: 'center', valign: 'middle', fillColor: [144, 238, 144] } },
+                { content: 'COI/NCOI\nQuant/Non-Quant/\nNon-Classroom', rowSpan: 3, styles: { halign: 'center', valign: 'middle', fillColor: [144, 238, 144], fontSize: 5 } },
+                { content: 'Weight\nper\nObjective', rowSpan: 3, styles: { halign: 'center', valign: 'middle', fillColor: [144, 238, 144] } },
+                { content: 'COT\nIndicator\nNo.', rowSpan: 3, styles: { halign: 'center', valign: 'middle', fillColor: [144, 238, 144] } },
+                { content: 'COT 1\nACAD-STEM', colSpan: 2, styles: { halign: 'center', fillColor: [255, 192, 203] } },
+                { content: 'COT 2', colSpan: 2, styles: { halign: 'center', fillColor: [255, 192, 203] } },
+                { content: 'COT 3', colSpan: 2, styles: { halign: 'center', fillColor: [255, 192, 203] } },
+                { content: 'COT 4', colSpan: 2, styles: { halign: 'center', fillColor: [255, 192, 203] } },
+                { content: 'Ave', rowSpan: 3, styles: { halign: 'center', valign: 'middle', fillColor: [144, 238, 144] } },
+                { content: 'IPCRF Numerical Ratings', colSpan: 4, styles: { halign: 'center', fillColor: [144, 238, 144] } },
+                { content: 'Score', rowSpan: 3, styles: { halign: 'center', valign: 'middle', fillColor: [144, 238, 144] } },
+                { content: 'Adjectival\nRating', rowSpan: 3, styles: { halign: 'center', valign: 'middle', fillColor: [144, 238, 144] } }
+            ],
+            [
+                { content: 'Rating', styles: { halign: 'center', fillColor: [255, 192, 203] } },
+                { content: 'RPMS 5-pt Scale', styles: { halign: 'center', fillColor: [255, 192, 203] } },
+                { content: 'Rating', styles: { halign: 'center', fillColor: [255, 192, 203] } },
+                { content: 'RPMS 5-pt Scale', styles: { halign: 'center', fillColor: [255, 192, 203] } },
+                { content: 'Rating', styles: { halign: 'center', fillColor: [255, 192, 203] } },
+                { content: 'RPMS 5-pt Scale', styles: { halign: 'center', fillColor: [255, 192, 203] } },
+                { content: 'Rating', styles: { halign: 'center', fillColor: [255, 192, 203] } },
+                { content: 'RPMS 5-pt Scale', styles: { halign: 'center', fillColor: [255, 192, 203] } },
+                { content: 'Q', styles: { halign: 'center', fillColor: [144, 238, 144] } },
+                { content: 'E', styles: { halign: 'center', fillColor: [144, 238, 144] } },
+                { content: 'T', styles: { halign: 'center', fillColor: [144, 238, 144] } },
+                { content: 'Ave', styles: { halign: 'center', fillColor: [144, 238, 144] } }
+            ]
+        ];
+
+        // Data rows
+        const objective = submission.objective;
+        const competency = submission.competency;
+        const kraNumber = objective?.kra_id || 1;
+        const objectiveNumber = objective?.id || 1;
+        
+        // Get rating description
+        const getRatingDescription = (rating) => {
+            if (rating >= 4.5) return 'Outstanding';
+            if (rating >= 3.5) return 'Very Satisfactory';
+            if (rating >= 2.5) return 'Satisfactory';
+            if (rating >= 1.5) return 'Unsatisfactory';
+            return 'Poor';
+        };
+
+        const dataRows = [
+            [
+                kraNumber.toString(),
+                objectiveNumber.toString(),
+                objective?.code || '',
+                competency?.type || 'COI',
+                (objective?.weight || 7.14).toFixed(2) + '%',
+                competency?.id || '',
+                '', // COT 1 Rating
+                '', // COT 1 RPMS
+                '', // COT 2 Rating
+                '', // COT 2 RPMS
+                '', // COT 3 Rating
+                '', // COT 3 RPMS
+                '', // COT 4 Rating
+                '', // COT 4 RPMS
+                rating ? rating.toFixed(3) : '', // Ave
+                rating || '', // Q
+                rating || '', // E
+                rating || '', // T
+                rating ? rating.toFixed(3) : '', // Ave
+                rating ? (rating * (objective?.weight || 7.14) / 100).toFixed(3) : '', // Score
+                rating ? getRatingDescription(rating) : '' // Adjectival
+            ]
+        ];
+
+        autoTable(doc, {
+            startY: currentY,
+            head: headers,
+            body: dataRows,
+            theme: 'grid',
+            styles: {
+                fontSize: 6,
+                cellPadding: 1,
+                lineColor: [0, 0, 0],
+                lineWidth: 0.1,
+                halign: 'center',
+                valign: 'middle'
+            },
+            headStyles: {
+                fillColor: [144, 238, 144],
+                textColor: [0, 0, 0],
+                fontStyle: 'bold',
+                lineWidth: 0.1,
+                lineColor: [0, 0, 0]
+            },
+            columnStyles: {
+                0: { cellWidth: 8 },
+                1: { cellWidth: 10 },
+                2: { cellWidth: 10 },
+                3: { cellWidth: 12 },
+                4: { cellWidth: 12 },
+                5: { cellWidth: 10 },
+                6: { cellWidth: 10 },
+                7: { cellWidth: 12 },
+                8: { cellWidth: 10 },
+                9: { cellWidth: 12 },
+                10: { cellWidth: 10 },
+                11: { cellWidth: 12 },
+                12: { cellWidth: 10 },
+                13: { cellWidth: 12 },
+                14: { cellWidth: 12 },
+                15: { cellWidth: 10 },
+                16: { cellWidth: 10 },
+                17: { cellWidth: 10 },
+                18: { cellWidth: 12 },
+                19: { cellWidth: 12 },
+                20: { cellWidth: 18 }
+            }
+        });
+
+        // Footer section - Date Observed and COT Status
+        currentY = doc.lastAutoTable.finalY;
+        
+        const footerData = [
+            [
+                { content: 'Date Observed:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: new Date().toLocaleDateString('en-US'), styles: { fillColor: [255, 255, 255] } },
+                { content: '', colSpan: 2, styles: { fillColor: [255, 192, 203] } },
+                { content: 'Final Rating', styles: { fontStyle: 'bold', fillColor: [144, 238, 144] } },
+                { content: rating ? rating.toFixed(3) : '', styles: { fillColor: [255, 255, 255] } }
+            ],
+            [
+                { content: 'COT Status:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: '✓', styles: { fillColor: [255, 255, 255] } },
+                { content: '', colSpan: 2, styles: { fillColor: [255, 192, 203] } },
+                { content: 'Adjectival Rating', styles: { fontStyle: 'bold', fillColor: [144, 238, 144] } },
+                { content: rating ? getRatingDescription(rating) : '', styles: { fillColor: [255, 255, 255] } }
+            ]
+        ];
+
+        autoTable(doc, {
+            startY: currentY,
+            body: footerData,
+            theme: 'grid',
+            styles: {
+                fontSize: 7,
+                cellPadding: 2,
+                lineColor: [0, 0, 0],
+                lineWidth: 0.1
+            }
+        });
+
+        // Signature section
+        currentY = doc.lastAutoTable.finalY + 5;
+        
+        const signatureData = [
+            [
+                { content: 'Rater', colSpan: 2, styles: { halign: 'center', fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: 'Approving Authority', colSpan: 2, styles: { halign: 'center', fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: '', colSpan: 2, styles: { fillColor: [255, 192, 203] } }
+            ],
+            [
+                { content: '', styles: { fillColor: [255, 255, 255] } },
+                { content: auth.user.name?.toUpperCase() || '', styles: { halign: 'center', fontStyle: 'bold', fillColor: [255, 255, 255] } },
+                { content: 'Last:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: '', styles: { fillColor: [255, 255, 255] } },
+                { content: 'First:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: '', styles: { fillColor: [255, 255, 255] } }
+            ],
+            [
+                { content: '', styles: { fillColor: [255, 192, 203] } },
+                { content: auth.user.roles?.[0]?.name || 'Principal IV', styles: { halign: 'center', fontStyle: 'italic', fillColor: [255, 255, 255] } },
+                { content: 'Position:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: 'Schools Division Superintendent', styles: { fillColor: [255, 255, 255] } },
+                { content: 'Middle:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: '', styles: { fillColor: [255, 255, 255] } }
+            ],
+            [
+                { content: '', colSpan: 2, styles: { fillColor: [255, 192, 203] } },
+                { content: '', colSpan: 2, styles: { fillColor: [255, 192, 203] } },
+                { content: 'Email:', styles: { fontStyle: 'bold', fillColor: [255, 192, 203] } },
+                { content: '', styles: { fillColor: [255, 255, 255] } }
+            ]
+        ];
+
+        autoTable(doc, {
+            startY: currentY,
+            body: signatureData,
+            theme: 'grid',
+            styles: {
+                fontSize: 7,
+                cellPadding: 3,
+                lineColor: [0, 0, 0],
+                lineWidth: 0.1
+            }
+        });
+
+        // Save the PDF
+        const fileName = `IPCRF_${teacher.name.replace(/\s+/g, '_')}_${submission.objective?.code || 'Document'}_${new Date().toISOString().split('T')[0]}.pdf`;
+        console.log('Saving PDF as:', fileName);
+        doc.save(fileName);
+        
+        toast.success('PDF exported successfully!');
+        } catch (error) {
+            console.error('Error exporting PDF:', error);
+            toast.error('Failed to export PDF: ' + error.message);
+        }
+    };
 
     // Pagination for unified table
     const [currentTablePage, setCurrentTablePage] = useState(0);
@@ -393,9 +721,9 @@ export default function RateIpcrfPdf({ teacher, submissions, auth, flash }) {
                                                                                             variant="outline"
                                                                                             onClick={() => openRatingModal(actualIndex)}
                                                                                             className="h-7 px-2 text-xs text-blue-600 hover:text-blue-700"
-                                                                                            title="Open detailed view"
+                                                                                            title="View details"
                                                                                         >
-                                                                                            <Download className="h-3 w-3" />
+                                                                                            <FileText className="h-3 w-3" />
                                                                                         </Button>
                                                                                     </div>
                                                                                 </td>
@@ -602,6 +930,14 @@ export default function RateIpcrfPdf({ teacher, submissions, auth, flash }) {
                                 onClick={() => setIsRatingModalOpen(false)}
                             >
                                 Close
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={() => exportToPDF(selectedSubmissionIndex)}
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                            >
+                                <Download className="h-4 w-4 mr-2" />
+                                Export PDF
                             </Button>
                             {!isTeacher && (
                                 <Button 
