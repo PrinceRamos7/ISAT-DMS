@@ -119,6 +119,152 @@ export default function IpcrfSubmissions({ teachers, availableYears, kras, filte
         setIsViewDetailsModalOpen(true);
     };
 
+    // Generate IPCRF PDF for printing - Official DepEd Format
+    const generateIPCRFPDF = (teacher, rating) => {
+        try {
+            console.log('Starting PDF generation...', { teacher, rating });
+            
+            // Create PDF in landscape orientation for IPCRF form
+            const doc = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'legal' // 355.6 x 215.9 mm
+            });
+
+            const pageWidth = doc.internal.pageSize.getWidth();
+            
+            // Title Section
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'bold');
+            doc.text('Individual Performance Commitment and Review Form (IPCRF)', pageWidth / 2, 15, { align: 'center' });
+            
+            // Teacher Information
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Name of Employee: ${teacher?.name || 'N/A'}`, 10, 25);
+            doc.text(`Position: ${teacher?.current_position?.name || 'Teacher I'}`, 10, 30);
+            doc.text(`Rating Period: ${rating?.rating_period || 'N/A'}`, 10, 35);
+            doc.text(`Date: ${new Date().toLocaleDateString()}`, pageWidth - 60, 25);
+            
+            // Prepare table data
+            const tableData = [];
+            
+            if (rating?.kra_details && Array.isArray(rating.kra_details)) {
+                rating.kra_details.forEach((kra) => {
+                    if (kra?.objectives && Array.isArray(kra.objectives)) {
+                        kra.objectives.forEach((obj) => {
+                            const objRating = Number(obj.rating) || 5;
+                            const objScore = Number(obj.score) || 0;
+                            
+                            tableData.push([
+                                kra.kra_name || '',
+                                obj.objective_code || '',
+                                obj.objective_description || '',
+                                '10%',
+                                objRating,
+                                objRating,
+                                objRating,
+                                objRating.toFixed(2),
+                                objScore.toFixed(3)
+                            ]);
+                        });
+                    }
+                });
+            }
+            
+            console.log('Table data prepared:', tableData.length, 'rows');
+            
+            // Create table using autoTable
+            autoTable(doc, {
+                startY: 45,
+                head: [[
+                    'KRA',
+                    'Code',
+                    'Objectives',
+                    'Weight',
+                    'Q',
+                    'E',
+                    'T',
+                    'Avg',
+                    'Score'
+                ]],
+                body: tableData,
+                theme: 'grid',
+                styles: {
+                    fontSize: 7,
+                    cellPadding: 2,
+                },
+                headStyles: {
+                    fillColor: [255, 192, 203],
+                    textColor: [0, 0, 0],
+                    fontStyle: 'bold',
+                    halign: 'center'
+                },
+                columnStyles: {
+                    0: { cellWidth: 40 },
+                    1: { cellWidth: 20, halign: 'center' },
+                    2: { cellWidth: 100 },
+                    3: { cellWidth: 20, halign: 'center' },
+                    4: { cellWidth: 15, halign: 'center' },
+                    5: { cellWidth: 15, halign: 'center' },
+                    6: { cellWidth: 15, halign: 'center' },
+                    7: { cellWidth: 20, halign: 'center' },
+                    8: { cellWidth: 25, halign: 'center' }
+                }
+            });
+            
+            // Summary section
+            const finalY = doc.lastAutoTable.finalY + 10;
+            const totalScore = Number(rating?.total_score) || 0;
+            const numericalRating = Number(rating?.numerical_rating) || 0;
+            
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`Total Score: ${totalScore.toFixed(3)}`, 10, finalY);
+            doc.text(`Numerical Rating: ${numericalRating.toFixed(2)}`, 10, finalY + 7);
+            
+            // Rating interpretation
+            let interpretation = '';
+            if (numericalRating >= 4.5) interpretation = 'Outstanding';
+            else if (numericalRating >= 3.5) interpretation = 'Very Satisfactory';
+            else if (numericalRating >= 2.5) interpretation = 'Satisfactory';
+            else if (numericalRating >= 1.5) interpretation = 'Unsatisfactory';
+            else interpretation = 'Poor';
+            
+            doc.text(`Performance Rating: ${interpretation}`, 10, finalY + 14);
+            
+            // Remarks
+            if (rating?.remarks) {
+                doc.setFontSize(9);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Remarks:', 10, finalY + 22);
+                doc.text(rating.remarks, 10, finalY + 27, { maxWidth: pageWidth - 20 });
+            }
+            
+            // Signature section
+            const sigY = finalY + 40;
+            doc.setFontSize(10);
+            doc.text('_________________________', 10, sigY);
+            doc.text('Rater Signature', 10, sigY + 5);
+            doc.text('Date: ______________', 10, sigY + 10);
+            
+            doc.text('_________________________', pageWidth / 2, sigY);
+            doc.text('Approving Authority Signature', pageWidth / 2, sigY + 5);
+            doc.text('Date: ______________', pageWidth / 2, sigY + 10);
+            
+            console.log('PDF generation complete, saving...');
+            
+            // Save PDF
+            const filename = `IPCRF_${teacher?.name?.replace(/\s+/g, '_') || 'Teacher'}_${rating?.rating_period || 'Unknown'}.pdf`;
+            doc.save(filename);
+            
+            toast.success('IPCRF PDF generated successfully!');
+        } catch (error) {
+            console.error('Error generating PDF:', error);
+            toast.error(`Failed to generate PDF: ${error.message}`);
+        }
+    };
+
     // Export rating to PDF in official IPCRF format
     const exportRatingToPDF = () => {
         if (!selectedRating) return;
@@ -608,14 +754,24 @@ export default function IpcrfSubmissions({ teachers, availableYears, kras, filte
                                                                             Rate
                                                                         </Button>
                                                                         {latestRating && (
-                                                                            <Button
-                                                                                size="sm"
-                                                                                variant="outline"
-                                                                                onClick={() => viewRatingDetails(latestRating)}
-                                                                            >
-                                                                                <Eye className="h-3 w-3 mr-1" />
-                                                                                View
-                                                                            </Button>
+                                                                            <>
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    variant="outline"
+                                                                                    onClick={() => viewRatingDetails(latestRating)}
+                                                                                >
+                                                                                    <Eye className="h-3 w-3 mr-1" />
+                                                                                    View
+                                                                                </Button>
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    className="bg-blue-600 hover:bg-blue-700"
+                                                                                    onClick={() => generateIPCRFPDF(teacher, latestRating)}
+                                                                                >
+                                                                                    <FileDown className="h-3 w-3 mr-1" />
+                                                                                    Print
+                                                                                </Button>
+                                                                            </>
                                                                         )}
                                                                     </div>
                                                                 </TableCell>

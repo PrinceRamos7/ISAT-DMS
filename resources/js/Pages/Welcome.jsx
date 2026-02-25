@@ -66,8 +66,7 @@ export default function Welcome({ auth }) {
             }
         };
     }, []);
-
-    //
+    
     const features = [
         {
             icon: FileText,
@@ -160,7 +159,7 @@ export default function Welcome({ auth }) {
 
     return (
         <>
-            <Head title="Welcome to ISAT e-TRACES" />
+            <Head title="Welcome to ISAT DMS" />
             
             <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
                 {/* Navigation - Enhanced with glassmorphism and smooth transitions */}
@@ -177,7 +176,7 @@ export default function Welcome({ auth }) {
                             <div className="flex items-center gap-3 group cursor-pointer">
                                 <div className="relative">
                                     <img 
-                                        src="/pictures/isat.tmp" 
+                                        src="/pictures/isat.jpg" 
                                         alt="ISAT Logo" 
                                         className="h-10 w-10 rounded-lg object-cover transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3"
                                     />
@@ -185,7 +184,7 @@ export default function Welcome({ auth }) {
                                 </div>
                                 <div>
                                     <h1 className="text-xl font-bold text-gray-900 transition-colors duration-300 group-hover:text-green-600">
-                                        ISAT e-TRACES
+                                        ISAT DMS
                                     </h1>
                                     <p className="text-xs text-gray-600">Document Management System</p>
                                 </div>
@@ -300,7 +299,7 @@ export default function Welcome({ auth }) {
                                     <div className="relative bg-gradient-to-br from-green-100 to-blue-100 rounded-3xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-500 hover:rotate-1 backdrop-blur-sm">
                                         <div className="relative overflow-hidden rounded-2xl">
                                             <img 
-                                                src="/pictures/isat.tmp" 
+                                                src="/pictures/isat.jpg" 
                                                 alt="ISAT" 
                                                 className="w-full h-auto shadow-lg transition-transform duration-700 hover:scale-110"
                                                 loading="eager"
@@ -511,128 +510,6 @@ export default function Welcome({ auth }) {
                     </div>
                 </section>
 
-                {/* Campus Gallery Section - ISAT Branding */}
-                <section 
-                    className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 via-white to-[#1a5f3a]/5 relative overflow-hidden"
-                    id="gallery"
-                    data-animate
-                >
-                    {/* Decorative background elements */}
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-[#1a5f3a]/10 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#fbbf24]/10 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
-                    
-                    <div className="max-w-7xl mx-auto relative z-10">
-                        <div className="text-center mb-16">
-                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a5f3a]/10 text-[#1a5f3a] rounded-full text-sm font-medium mb-4 border border-[#1a5f3a]/30">
-                                <Eye className="h-4 w-4" />
-                                Our Campus
-                            </div>
-                            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                                Isabela School of Arts and Trades
-                            </h2>
-                            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                                A glimpse into our vibrant learning environment where excellence meets innovation
-                            </p>
-                        </div>
-
-                        {/* Image Grid with hover effects */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {/* Main featured image - larger */}
-                            <div className={`lg:col-span-2 lg:row-span-2 group relative overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 ${
-                                isVisible.gallery ? 'animate-fade-in-up' : 'opacity-0'
-                            }`}>
-                                <div className="relative h-full min-h-[400px] overflow-hidden">
-                                    <img 
-                                        src="/pictures/pic1.jpg" 
-                                        alt="ISAT Campus Main Building" 
-                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                        loading="lazy"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
-                                    <div className="absolute bottom-0 left-0 right-0 p-6 text-white transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                                        <h3 className="text-2xl font-bold mb-2">Main Campus</h3>
-                                        <p className="text-sm text-gray-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
-                                            Where innovation and tradition meet to shape future leaders
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Secondary images - grid layout */}
-                            {[
-                                { src: '/pictures/pic2.jpg', title: 'Learning Facilities', desc: 'State-of-the-art classrooms' },
-                                { src: '/pictures/pic3.jpg', title: 'Campus Grounds', desc: 'Beautiful learning environment' },
-                                { src: '/pictures/pic4.jpg', title: 'Student Activities', desc: 'Vibrant campus life' },
-                                { src: '/pictures/pic5.jpg', title: 'Academic Excellence', desc: 'Committed to quality education' },
-                                { src: '/pictures/pic6.jpg', title: 'Community', desc: 'Building tomorrow together' }
-                            ].map((image, index) => (
-                                <div 
-                                    key={index}
-                                    className={`group relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 ${
-                                        isVisible.gallery ? 'animate-fade-in-up' : 'opacity-0'
-                                    }`}
-                                    style={{ animationDelay: `${(index + 1) * 150}ms` }}
-                                >
-                                    <div className="relative h-64 overflow-hidden">
-                                        <img 
-                                            src={image.src}
-                                            alt={image.title}
-                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                            loading="lazy"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
-                                        <div className="absolute bottom-0 left-0 right-0 p-4 text-white transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                                            <h3 className="text-lg font-bold mb-1">{image.title}</h3>
-                                            <p className="text-xs text-gray-200 opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-100">
-                                                {image.desc}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Campus Info Cards */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-                            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border-2 border-[#1a5f3a]/20 hover:border-[#1a5f3a] transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-[#1a5f3a] to-[#1a5f3a]/80 rounded-lg flex items-center justify-center">
-                                        <Award className="h-6 w-6 text-white" />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-gray-900">Excellence</h4>
-                                        <p className="text-sm text-gray-600">Committed to Quality</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border-2 border-[#fbbf24]/20 hover:border-[#fbbf24] transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-[#fbbf24] to-[#fbbf24]/80 rounded-lg flex items-center justify-center">
-                                        <Users className="h-6 w-6 text-white" />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-gray-900">Community</h4>
-                                        <p className="text-sm text-gray-600">Together We Grow</p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 border-2 border-[#1a5f3a]/20 hover:border-[#1a5f3a] transition-all duration-300 hover:shadow-lg transform hover:-translate-y-1">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-[#1a5f3a] to-[#1a5f3a]/80 rounded-lg flex items-center justify-center">
-                                        <Target className="h-6 w-6 text-white" />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-bold text-gray-900">Innovation</h4>
-                                        <p className="text-sm text-gray-600">Leading the Future</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
                 {/* Footer */}
                 <footer className="bg-gray-900 text-gray-300 py-12 px-4 sm:px-6 lg:px-8">
                     <div className="max-w-7xl mx-auto">
@@ -640,12 +517,12 @@ export default function Welcome({ auth }) {
                             <div>
                                 <div className="flex items-center gap-3 mb-4">
                                     <img 
-                                        src="/pictures/isat.tmp" 
+                                        src="/pictures/isat.jpg" 
                                         alt="ISAT Logo" 
                                         className="h-10 w-10 rounded-lg object-cover"
                                     />
                                     <div>
-                                        <h3 className="text-white font-bold">ISAT e-TRACES</h3>
+                                        <h3 className="text-white font-bold">ISAT DMS</h3>
                                         <p className="text-xs text-gray-400">Document Management System</p>
                                     </div>
                                 </div>
@@ -684,7 +561,7 @@ export default function Welcome({ auth }) {
                         </div>
                         
                         <div className="border-t border-gray-800 pt-8 text-center text-sm">
-                            <p>&copy; {new Date().getFullYear()} ISAT e-TRACES. All rights reserved.</p>
+                            <p>&copy; {new Date().getFullYear()} ISAT Document Management System. All rights reserved.</p>
                         </div>
                     </div>
                 </footer>
@@ -717,7 +594,7 @@ export default function Welcome({ auth }) {
                                     <div className="flex items-center gap-3">
                                         <div className="relative group">
                                             <img 
-                                                src="/pictures/isat.tmp" 
+                                                src="/pictures/isat.jpg" 
                                                 alt="ISAT Logo" 
                                                 className="h-12 w-12 rounded-lg object-cover transition-transform duration-300 group-hover:scale-110"
                                             />
