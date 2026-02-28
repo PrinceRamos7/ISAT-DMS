@@ -24,6 +24,7 @@ export default function Welcome({ auth }) {
     const [isLearnMoreOpen, setIsLearnMoreOpen] = useState(false);
     const [scrollY, setScrollY] = useState(0);
     const [isVisible, setIsVisible] = useState({});
+    const [currentSlide, setCurrentSlide] = useState(0);
     const observerRef = useRef(null);
 
     // Scroll handler for parallax and sticky nav
@@ -34,6 +35,14 @@ export default function Welcome({ auth }) {
         
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // Auto-rotate carousel every 5 seconds
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentSlide((prev) => (prev + 1) % 4);
+        }, 5000);
+        return () => clearInterval(interval);
     }, []);
 
     // Intersection Observer for scroll-triggered animations
@@ -215,121 +224,102 @@ export default function Welcome({ auth }) {
 
                 {/* Hero Section - Enhanced with parallax */}
                 <section 
-                    className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden min-h-[90vh] flex items-center"
+                    className="relative py-20 px-4 sm:px-6 lg:px-8 overflow-hidden min-h-screen flex items-center"
                     id="hero"
                     data-animate
                 >
                     {/* Background Decoration with parallax */}
                     <div className="absolute inset-0 pointer-events-none overflow-hidden">
                         <div 
-                            className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#1a5f3a]/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"
+                            className="absolute top-0 right-0 w-[600px] h-[600px] bg-[#1a5f3a]/10 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob"
                             style={{ transform: `translateY(${scrollY * 0.1}px)` }}
                         ></div>
                         <div 
-                            className="absolute top-0 left-0 w-[500px] h-[500px] bg-[#fbbf24]/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"
+                            className="absolute top-0 left-0 w-[600px] h-[600px] bg-[#fbbf24]/10 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-2000"
                             style={{ transform: `translateY(${scrollY * 0.15}px)` }}
                         ></div>
                         <div 
-                            className="absolute bottom-0 left-1/2 w-[500px] h-[500px] bg-[#1a5f3a]/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"
+                            className="absolute bottom-0 left-1/2 w-[600px] h-[600px] bg-[#1a5f3a]/10 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-4000"
                             style={{ transform: `translateY(${scrollY * 0.05}px)` }}
                         ></div>
                     </div>
 
-                    <div className="max-w-7xl mx-auto relative">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                    <div className="max-w-7xl mx-auto relative w-full">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                             {/* Left Content - Enhanced animations */}
-                            <div className="text-left space-y-8">
-                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#1a5f3a]/10 to-[#fbbf24]/10 text-[#1a5f3a] rounded-full text-sm font-medium animate-fade-in border border-[#1a5f3a]/30 hover:shadow-md transition-all duration-300">
+                            <div className="text-left space-y-8 animate-fade-in">
+                                <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#1a5f3a]/10 to-[#fbbf24]/10 text-[#1a5f3a] rounded-full text-sm font-semibold border border-[#1a5f3a]/20 hover:shadow-lg transition-all duration-300 hover:scale-105">
                                     <Sparkles className="h-4 w-4 animate-pulse" />
                                     For Teachers, By Educators
                                 </div>
                                 
-                                <h1 className="text-5xl md:text-6xl font-bold text-gray-900 leading-tight animate-slide-up">
+                                <h1 className="text-5xl md:text-7xl font-extrabold text-gray-900 leading-tight">
                                     Empower Your
-                                    <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#1a5f3a] via-[#fbbf24] to-[#1a5f3a] mt-2 animate-gradient">
+                                    <span className="block text-transparent bg-clip-text bg-gradient-to-r from-[#1a5f3a] via-[#fbbf24] to-[#1a5f3a] mt-3 animate-gradient bg-size-200">
                                         Teaching Career
                                     </span>
                                 </h1>
                                 
-                                <p className="text-xl text-gray-600 leading-relaxed animate-slide-up animation-delay-200">
+                                <p className="text-xl md:text-2xl text-gray-600 leading-relaxed max-w-xl">
                                     Digital IPCRF submission and performance tracking made simple. 
                                     Focus on teaching while we handle your professional documentation.
                                 </p>
                                 
-                                <div className="flex flex-col sm:flex-row items-start gap-4 animate-slide-up animation-delay-400">
+                                <div className="flex flex-col sm:flex-row items-start gap-4 pt-4">
                                     {!auth.user ? (
-                                        <>
-                                            <Link
-                                                href={route('login')}
-                                                className="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-[#1a5f3a] to-[#1a5f3a]/90 text-white rounded-xl hover:from-[#1a5f3a]/90 hover:to-[#1a5f3a] transition-all transform hover:scale-105 hover:shadow-2xl font-semibold overflow-hidden"
-                                            >
-                                                <span className="absolute inset-0 w-full h-full bg-[#fbbf24]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                                                <span className="relative">Start Your Journey</span>
-                                                <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform relative" />
-                                            </Link>
-                                            <button 
-                                                onClick={() => setIsLearnMoreOpen(true)}
-                                                className="group inline-flex items-center px-8 py-4 bg-white text-[#1a5f3a] rounded-xl hover:bg-[#fbbf24]/10 transition-all border-2 border-[#1a5f3a]/30 hover:border-[#1a5f3a] font-semibold transform hover:scale-105 hover:shadow-lg"
-                                            >
-                                                <Eye className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
-                                                About ISAT
-                                            </button>
-                                        </>
+                                        <Link
+                                            href={route('login')}
+                                            className="group relative inline-flex items-center px-10 py-5 bg-gradient-to-r from-[#1a5f3a] to-[#1a5f3a]/90 text-white rounded-2xl hover:from-[#1a5f3a]/90 hover:to-[#1a5f3a] transition-all transform hover:scale-105 hover:shadow-2xl font-bold text-lg overflow-hidden"
+                                        >
+                                            <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-[#fbbf24]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                                            <span className="relative">Start Your Journey</span>
+                                            <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-2 transition-transform relative" />
+                                        </Link>
                                     ) : (
                                         <Link
                                             href={route('dashboard')}
-                                            className="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-[#1a5f3a] to-[#1a5f3a]/90 text-white rounded-xl hover:from-[#1a5f3a]/90 hover:to-[#1a5f3a] transition-all transform hover:scale-105 hover:shadow-2xl font-semibold overflow-hidden"
+                                            className="group relative inline-flex items-center px-10 py-5 bg-gradient-to-r from-[#1a5f3a] to-[#1a5f3a]/90 text-white rounded-2xl hover:from-[#1a5f3a]/90 hover:to-[#1a5f3a] transition-all transform hover:scale-105 hover:shadow-2xl font-bold text-lg overflow-hidden"
                                         >
-                                            <span className="absolute inset-0 w-full h-full bg-[#fbbf24]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                                            <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-[#fbbf24]/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                                             <span className="relative">Go to My Dashboard</span>
-                                            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform relative" />
+                                            <ArrowRight className="ml-3 h-6 w-6 group-hover:translate-x-2 transition-transform relative" />
                                         </Link>
                                     )}
                                 </div>
                                 
-                                {/* Scroll indicator */}
-                                <div className="flex justify-center pt-8 animate-bounce">
-                                    <ChevronDown className="h-8 w-8 text-gray-400" />
+                                {/* Trust indicators */}
+                                <div className="flex items-center gap-8 pt-8 border-t border-gray-200">
+                                    <div className="flex items-center gap-2">
+                                        <CheckCircle className="h-5 w-5 text-green-600" />
+                                        <span className="text-sm font-medium text-gray-700">Secure & Reliable</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <CheckCircle className="h-5 w-5 text-green-600" />
+                                        <span className="text-sm font-medium text-gray-700">Easy to Use</span>
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Right Content - Enhanced with 3D effect */}
                             <div className="relative animate-fade-in animation-delay-400">
-                                <div className="relative perspective-1000">
+                                <div className="relative">
                                     {/* Main Image Container with glassmorphism */}
-                                    <div className="relative bg-gradient-to-br from-green-100 to-blue-100 rounded-3xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-500 hover:rotate-1 backdrop-blur-sm">
-                                        <div className="relative overflow-hidden rounded-2xl">
+                                    <div className="relative bg-gradient-to-br from-white/80 to-white/40 backdrop-blur-sm rounded-3xl p-8 shadow-2xl transform hover:scale-105 transition-all duration-500 border border-white/50">
+                                        <div className="relative overflow-hidden rounded-2xl shadow-xl">
                                             <img 
                                                 src="/pictures/isat.tmp" 
                                                 alt="ISAT" 
-                                                className="w-full h-auto shadow-lg transition-transform duration-700 hover:scale-110"
+                                                className="w-full h-auto transition-transform duration-700 hover:scale-110"
                                                 loading="eager"
                                             />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
                                         </div>
                                         
-                                        {/* Floating Cards with enhanced animations */}
-                                        <div className="absolute -top-6 -right-6 bg-white/95 backdrop-blur-sm rounded-xl shadow-xl p-4 animate-float hover:shadow-2xl transition-shadow duration-300 border border-green-100">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 bg-gradient-to-br from-green-100 to-green-200 rounded-lg flex items-center justify-center">
-                                                    <CheckCircle className="h-6 w-6 text-green-600" />
-                                                </div>
-                                                <div>
-                                                    <div className="text-sm font-semibold text-gray-900">Verified</div>
-                                                    <div className="text-xs text-gray-500">Secure System</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <div className="absolute -bottom-6 -left-6 bg-white/95 backdrop-blur-sm rounded-xl shadow-xl p-4 animate-float animation-delay-2000 hover:shadow-2xl transition-shadow duration-300 border border-blue-100">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-blue-200 rounded-lg flex items-center justify-center">
-                                                    <Award className="h-6 w-6 text-blue-600" />
-                                                </div>
-                                                <div>
-                                                    <div className="text-sm font-semibold text-gray-900">Excellence</div>
-                                                    <div className="text-xs text-gray-500">Top Rated</div>
-                                                </div>
+                                        {/* Floating Badge */}
+                                        <div className="absolute -top-4 -right-4 bg-gradient-to-br from-[#fbbf24] to-[#f59e0b] text-white px-6 py-3 rounded-2xl shadow-2xl animate-float">
+                                            <div className="flex items-center gap-2">
+                                                <Award className="h-5 w-5" />
+                                                <span className="font-bold text-sm">Excellence in Education</span>
                                             </div>
                                         </div>
                                     </div>
@@ -339,174 +329,173 @@ export default function Welcome({ auth }) {
                     </div>
                 </section>
 
-                {/* Features Section - Enhanced with scroll animations */}
-                <section 
-                    className="py-24 px-4 sm:px-6 lg:px-8 bg-white"
-                    id="features"
-                    data-animate
-                >
-                    <div className="max-w-7xl mx-auto">
-                        <div className="text-center mb-16 animate-fade-in">
-                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#1a5f3a]/10 text-[#1a5f3a] rounded-full text-sm font-medium mb-4 border border-[#1a5f3a]/30">
-                                <Target className="h-4 w-4" />
-                                Built for Teachers
-                            </div>
-                            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-                                Everything You Need to Excel
-                            </h2>
-                            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                                Powerful tools designed to support your professional growth and simplify your documentation process
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {features.map((feature, index) => {
-                                const Icon = feature.icon;
-                                return (
-                                    <div 
-                                        key={index}
-                                        className={`group relative bg-white rounded-2xl p-8 border-2 border-gray-200 hover:border-[#1a5f3a] transition-all hover:shadow-2xl transform hover:-translate-y-2 duration-300 cursor-pointer overflow-hidden ${
-                                            isVisible.features ? 'animate-fade-in-up' : 'opacity-0'
-                                        }`}
-                                        style={{ 
-                                            animationDelay: `${index * 150}ms`
-                                        }}
-                                    >
-                                        {/* Gradient overlay on hover - fixed z-index */}
-                                        <div className="absolute inset-0 bg-gradient-to-br from-[#1a5f3a]/5 to-[#fbbf24]/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                                        
-                                        <div className="relative z-10">
-                                            <div className={`${feature.color} w-16 h-16 rounded-xl flex items-center justify-center mb-6 group-hover:scale-105 transition-all duration-300 shadow-md group-hover:shadow-lg`}>
-                                                <Icon className="h-8 w-8 text-white" />
-                                            </div>
-                                            <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-[#1a5f3a] transition-colors duration-300">
-                                                {feature.title}
-                                            </h3>
-                                            <p className="text-gray-600 leading-relaxed">
-                                                {feature.description}
-                                            </p>
-                                            
-                                            {/* Hover indicator */}
-                                            <div className="mt-4 flex items-center text-[#1a5f3a] opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
-                                                <span className="text-sm font-semibold">Learn more</span>
-                                                <ArrowRight className="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                                            </div>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </section>
-
-                {/* Workflow Section - Enhanced */}
-                <section 
-                    className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-[#1a5f3a]/5 to-[#fbbf24]/10 relative overflow-hidden"
-                    id="workflow"
-                    data-animate
-                >
+                {/* Vision, Mission, Goals, Objectives Carousel */}
+                <section className="py-24 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 via-white to-[#1a5f3a]/5 relative overflow-hidden">
                     {/* Decorative elements */}
-                    <div className="absolute top-0 left-0 w-64 h-64 bg-[#1a5f3a]/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
-                    <div className="absolute bottom-0 right-0 w-64 h-64 bg-[#fbbf24]/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse animation-delay-2000"></div>
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-[#1a5f3a]/5 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
+                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-[#fbbf24]/5 rounded-full mix-blend-multiply filter blur-3xl opacity-50"></div>
                     
-                    <div className="max-w-7xl mx-auto relative z-10">
-                        <div className="text-center mb-16">
-                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#fbbf24]/10 text-[#1a5f3a] rounded-full text-sm font-medium mb-4 border border-[#fbbf24]/50">
-                                <Zap className="h-4 w-4" />
-                                Quick & Easy
+                    <div className="max-w-6xl mx-auto relative z-10">
+                        <div className="text-center mb-16 space-y-4">
+                            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#1a5f3a]/10 text-[#1a5f3a] rounded-full text-sm font-semibold border border-[#1a5f3a]/20">
+                                <Target className="h-4 w-4" />
+                                Our Foundation
                             </div>
-                            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                                How It Works
+                            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900">
+                                About ISAT
                             </h2>
-                            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                                Four simple steps to manage your professional documentation
+                            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+                                Our commitment to excellence in technical education and workforce development
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                            {workflow.map((item, index) => {
-                                const Icon = item.icon;
-                                return (
-                                    <div key={index} className="relative">
-                                        <div className={`bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-[#1a5f3a] transition-all hover:shadow-xl text-center transform hover:-translate-y-2 duration-300 ${
-                                            isVisible.workflow ? 'animate-fade-in-up' : 'opacity-0'
-                                        }`}
-                                        style={{ animationDelay: `${index * 200}ms` }}
-                                        >
-                                            <div className="w-16 h-16 bg-gradient-to-br from-[#1a5f3a] to-[#fbbf24] rounded-full flex items-center justify-center mx-auto mb-4 text-white text-2xl font-bold shadow-lg hover:shadow-2xl transition-shadow hover:scale-110 duration-300">
-                                                {item.step}
+                        {/* Carousel Container */}
+                        <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden border border-gray-100">
+                            {/* Slides */}
+                            <div className="relative h-[550px] md:h-[650px]">
+                                {/* Vision Slide */}
+                                <div className={`absolute inset-0 transition-all duration-700 ${currentSlide === 0 ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+                                    <div className="h-full bg-gradient-to-br from-green-50 via-green-100 to-emerald-50 p-10 md:p-16 flex flex-col justify-center">
+                                        <div className="flex items-center gap-5 mb-10">
+                                            <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-green-600 to-green-700 flex items-center justify-center shadow-2xl">
+                                                <svg className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
                                             </div>
-                                            <Icon className="h-8 w-8 text-[#1a5f3a] mx-auto mb-3 hover:scale-110 transition-transform duration-300" />
-                                            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                                                {item.title}
-                                            </h3>
-                                            <p className="text-gray-600 text-sm">
-                                                {item.description}
-                                            </p>
+                                            <h3 className="text-5xl md:text-6xl font-extrabold text-green-900">VISION</h3>
                                         </div>
-                                        {index < workflow.length - 1 && (
-                                            <div className="hidden lg:block absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
-                                                <ArrowRight className="h-6 w-6 text-[#fbbf24] animate-pulse" />
-                                            </div>
-                                        )}
+                                        <p className="text-gray-800 leading-relaxed text-2xl md:text-3xl font-medium max-w-4xl">
+                                            A center of excellence geared towards developing Filipino workforce that initiates 
+                                            transformational approaches receptive to the changing needs of time.
+                                        </p>
                                     </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </section>
+                                </div>
 
-                {/* Benefits Section - Enhanced */}
-                <section 
-                    className="py-20 px-4 sm:px-6 lg:px-8 bg-white"
-                    id="benefits"
-                    data-animate
-                >
-                    <div className="max-w-7xl mx-auto">
-                        <div className="text-center mb-16">
-                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#fbbf24]/10 text-[#1a5f3a] rounded-full text-sm font-medium mb-4 border border-[#fbbf24]/50">
-                                <Award className="h-4 w-4" />
-                                Why Teachers Love Us
+                                {/* Mission Slide */}
+                                <div className={`absolute inset-0 transition-all duration-700 ${currentSlide === 1 ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+                                    <div className="h-full bg-gradient-to-br from-teal-50 via-teal-100 to-cyan-50 p-10 md:p-16 flex flex-col justify-center">
+                                        <div className="flex items-center gap-5 mb-10">
+                                            <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-teal-600 to-teal-700 flex items-center justify-center shadow-2xl">
+                                                <svg className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                                                </svg>
+                                            </div>
+                                            <h3 className="text-5xl md:text-6xl font-extrabold text-teal-900">MISSION</h3>
+                                        </div>
+                                        <p className="text-gray-800 leading-relaxed text-2xl md:text-3xl font-medium max-w-4xl">
+                                            ISAT commits to produce highly skilled workforce with positive work values and green 
+                                            skills through quality training, innovative research and responsive community engagement.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Goals Slide */}
+                                <div className={`absolute inset-0 transition-all duration-700 ${currentSlide === 2 ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+                                    <div className="h-full bg-gradient-to-br from-amber-50 via-orange-50 to-amber-50 p-10 md:p-16 overflow-y-auto custom-scrollbar">
+                                        <div className="flex items-center gap-5 mb-10">
+                                            <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-amber-600 to-orange-600 flex items-center justify-center shadow-2xl">
+                                                <svg className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            </div>
+                                            <h3 className="text-5xl md:text-6xl font-extrabold text-amber-900">GOALS</h3>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                            {[
+                                                "Continuously commit to service excellence in skills training",
+                                                "Extend skills training opportunities to more people",
+                                                "Strengthen linkages with industries",
+                                                "Strengthen stakeholder's linkages",
+                                                "Improve capability in income generating projects",
+                                                "Greening ISAT",
+                                                "Construction of new training laboratories",
+                                                "Implement flexible learning delivery"
+                                            ].map((goal, index) => (
+                                                <div key={index} className="flex gap-4 bg-white/70 backdrop-blur-sm p-5 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                                                    <div className="flex-shrink-0">
+                                                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-base font-bold shadow-lg">
+                                                            {index + 1}
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-gray-800 text-lg leading-relaxed font-medium">{goal}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Objectives Slide */}
+                                <div className={`absolute inset-0 transition-all duration-700 ${currentSlide === 3 ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+                                    <div className="h-full bg-gradient-to-br from-sky-50 via-blue-50 to-sky-50 p-10 md:p-16 overflow-y-auto custom-scrollbar">
+                                        <div className="flex items-center gap-5 mb-10">
+                                            <div className="h-20 w-20 rounded-3xl bg-gradient-to-br from-sky-600 to-blue-600 flex items-center justify-center shadow-2xl">
+                                                <svg className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                </svg>
+                                            </div>
+                                            <h3 className="text-5xl md:text-6xl font-extrabold text-sky-900">OBJECTIVES</h3>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                            {[
+                                                "Strive for excellence in skills training",
+                                                "Upgrade programs for global competence",
+                                                "Conduct TVET research",
+                                                "Produce globally competitive trainees",
+                                                "Conduct skills training in identified areas",
+                                                "Produce globally competitive skilled workforce",
+                                                "Establish strong stakeholder relationships",
+                                                "Encourage trainers to venture into IGP"
+                                            ].map((objective, index) => (
+                                                <div key={index} className="flex gap-4 bg-white/70 backdrop-blur-sm p-5 rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                                                    <div className="flex-shrink-0">
+                                                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-sky-500 to-blue-500 flex items-center justify-center text-white text-base font-bold shadow-lg">
+                                                            {index + 1}
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-gray-800 text-lg leading-relaxed font-medium">{objective}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                                Focus on Teaching, Not Paperwork
-                            </h2>
-                            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                                Join hundreds of teachers who have simplified their professional documentation
-                            </p>
-                        </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            {benefits.map((benefit, index) => {
-                                const Icon = benefit.icon;
-                                return (
-                                    <div 
+                            {/* Navigation Dots */}
+                            <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex gap-3 z-10 bg-white/90 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg">
+                                {[0, 1, 2, 3].map((index) => (
+                                    <button
                                         key={index}
-                                        className={`group relative bg-gradient-to-br from-white to-gray-50 rounded-2xl p-8 border-2 border-gray-200 hover:border-[#1a5f3a] transition-all hover:shadow-2xl text-center transform hover:-translate-y-2 duration-300 ${
-                                            isVisible.benefits ? 'animate-fade-in-up' : 'opacity-0'
+                                        onClick={() => setCurrentSlide(index)}
+                                        className={`h-3 rounded-full transition-all duration-300 ${
+                                            currentSlide === index 
+                                                ? 'bg-[#1a5f3a] w-10' 
+                                                : 'bg-gray-300 hover:bg-gray-400 w-3'
                                         }`}
-                                        style={{ animationDelay: `${index * 200}ms` }}
-                                    >
-                                        {/* Stat Badge */}
-                                        <div className="absolute -top-4 right-8 bg-gradient-to-r from-[#1a5f3a] to-[#fbbf24] text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
-                                            {benefit.stat}
-                                        </div>
-                                        
-                                        <div className="w-20 h-20 bg-gradient-to-br from-[#1a5f3a]/20 to-[#fbbf24]/20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-all duration-300 shadow-md group-hover:shadow-lg">
-                                            <Icon className="h-10 w-10 text-[#1a5f3a] group-hover:scale-110 transition-transform duration-300" />
-                                        </div>
-                                        <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-[#1a5f3a] transition-colors duration-300">
-                                            {benefit.title}
-                                        </h3>
-                                        <p className="text-gray-600 mb-4 group-hover:text-gray-700 transition-colors duration-300">
-                                            {benefit.description}
-                                        </p>
-                                        <p className="text-sm text-[#1a5f3a] font-semibold">
-                                            {benefit.statLabel}
-                                        </p>
-                                    </div>
-                                );
-                            })}
+                                        aria-label={`Go to slide ${index + 1}`}
+                                    />
+                                ))}
+                            </div>
+
+                            {/* Navigation Arrows */}
+                            <button
+                                onClick={() => setCurrentSlide((prev) => (prev - 1 + 4) % 4)}
+                                className="absolute left-6 top-1/2 transform -translate-y-1/2 bg-white hover:bg-gray-50 p-4 rounded-full shadow-xl transition-all duration-300 hover:scale-110 z-10 border border-gray-100"
+                                aria-label="Previous slide"
+                            >
+                                <svg className="h-6 w-6 text-[#1a5f3a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <button
+                                onClick={() => setCurrentSlide((prev) => (prev + 1) % 4)}
+                                className="absolute right-6 top-1/2 transform -translate-y-1/2 bg-white hover:bg-gray-50 p-4 rounded-full shadow-xl transition-all duration-300 hover:scale-110 z-10 border border-gray-100"
+                                aria-label="Next slide"
+                            >
+                                <svg className="h-6 w-6 text-[#1a5f3a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </section>
